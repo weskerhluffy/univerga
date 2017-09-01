@@ -299,6 +299,7 @@ typedef struct puto_cardinal {
 		} separados_puto_cardinal;
 		entero_largo coordenadas_juntas_puto_cardinal;
 	} datos_puto_cardinal;
+	void *extra;
 } puto_cardinal;
 
 #define coord_x datos_puto_cardinal.separados_puto_cardinal.coordenada_x_puto_cardinal
@@ -315,6 +316,8 @@ entero_largo matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS] = {
 		0 };
 natural matrix_fila_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS] = { 0 };
 natural rutas_pot[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS] = { 0 };
+natural rutas_parciales[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS][UNIVERGA_MAX_COLUMNAS] =
+		{ 0 };
 
 int univerga_compara_mierda(const void *pa, const void *pb) {
 	int res = 0;
@@ -330,20 +333,26 @@ int univerga_compara_mierda(const void *pa, const void *pb) {
 	return res;
 }
 
-int univerga_compara_ruta(const void *pa, const void *pb) {
+int univerga_compara_ruta(natural *a, natural *b) {
+	int resul = 0, j;
+//	natural (*a)[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS] = ((*)[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS])pa;
+	for (j = 0; j < UNIVERGA_MAX_COLUMNAS; j++) {
+		if ((a)[j] != (b)[j]) {
+			resul = (a)[j] - (b)[j];
+			break;
+		}
+	}
+	assert_timeout(j<UNIVERGA_MAX_COLUMNAS);
+	return resul;
+}
+int univerga_compara_ruta_cb(const void *pa, const void *pb) {
 	int resul = 0, j;
 //	natural (*a)[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS] = ((*)[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS])pa;
 	natural (*a)[UNIVERGA_MAX_COLUMNAS] =
 			(natural (*)[UNIVERGA_MAX_COLUMNAS]) pa;
 	natural (*b)[UNIVERGA_MAX_COLUMNAS] =
 			(natural (*)[UNIVERGA_MAX_COLUMNAS]) pb;
-	for (j = 0; j < UNIVERGA_MAX_COLUMNAS; j++) {
-		if ((*a)[j] != (*b)[j]) {
-			resul = (*a)[j] - (*b)[j];
-			break;
-		}
-	}
-	assert_timeout(j<UNIVERGA_MAX_COLUMNAS);
+	resul = univerga_compara_ruta((natural *) a, (natural*) b);
 	return resul;
 }
 
@@ -366,6 +375,7 @@ entero_largo matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS],
 		matrix_fila_rutas[i][0] = UNIVERGA_IDX_INVALIDO;
 		caca_log_debug("puta mierda %d casteado %d", *(matrix_chostos),
 				*(matrix_chostos +i*columnas_tam));
+		rutas_parciales[i][0][0] = i;
 	}
 
 	caca_log_debug("la matrix de chosto ruta\n%s",
@@ -387,6 +397,7 @@ entero_largo matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS],
 				puto_cardinal *final_ruta_act = rutas_ant + k;
 				final_ruta_act->costo = matrix_chosto_rutas[pos_col_ant][j - 1];
 				final_ruta_act->fila = pos_col_ant;
+				final_ruta_act->extra = rutas_parciales[pos_col_ant][j - 1];
 			}
 			qsort(rutas_ant, 3, sizeof(puto_cardinal), univerga_compara_mierda);
 			matrix_chosto_rutas[i][j] = rutas_ant->costo
@@ -396,6 +407,13 @@ entero_largo matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS],
 					matrix_chosto_rutas[i][j]);
 			caca_log_debug("mierda fila %u %u es %u", i, j,
 					matrix_fila_rutas[i][j]);
+			caca_log_debug("mierda ruta anteior %s",
+					caca_comun_arreglo_a_cadena_natural(rutas_ant->extra, j, CACA_COMUN_BUF_STATICO));
+			memcpy(rutas_parciales[i][j], rutas_ant->extra,
+					j * sizeof(natural));
+			rutas_parciales[i][j][j] = i;
+			caca_log_debug("mierda ruta parcial %s",
+					caca_comun_arreglo_a_cadena_natural(rutas_parciales[i][j], j+1, CACA_COMUN_BUF_STATICO));
 
 		}
 	}
@@ -419,7 +437,7 @@ entero_largo matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS],
 		if (matrix_chosto_rutas[i][j] == chosto_min) {
 			chosto_min_fila_cur = i;
 			while (chosto_min_fila_cur != UNIVERGA_IDX_INVALIDO) {
-				rutas_pot[ruta_pot_cont][j] = chosto_min_fila_cur + 1;
+				rutas_pot[ruta_pot_cont][j] = chosto_min_fila_cur;
 				chosto_min_fila_cur = matrix_fila_rutas[chosto_min_fila_cur][j];
 				j--;
 			}
@@ -431,7 +449,7 @@ entero_largo matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS],
 		}
 	}
 	qsort(rutas_pot, ruta_pot_cont, sizeof(rutas_pot[0]),
-			univerga_compara_ruta);
+			univerga_compara_ruta_cb);
 	memcpy(ruta, rutas_pot[0], columnas_tam * sizeof(natural));
 	caca_log_debug("la mierda es %s",
 			caca_comun_arreglo_a_cadena_natural(ruta, columnas_tam, CACA_COMUN_BUF_STATICO));
