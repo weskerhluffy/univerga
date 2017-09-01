@@ -310,6 +310,12 @@ typedef struct puto_cardinal {
 #define costo coord_x
 #define fila coord_y
 
+int matrix_chostos[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS] = { 0 };
+entero_largo matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS] = {
+		0 };
+natural matrix_fila_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS] = { 0 };
+natural rutas_pot[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS] = { 0 };
+
 int univerga_compara_mierda(const void *pa, const void *pb) {
 	int res = 0;
 	puto_cardinal *a = (puto_cardinal *) pa;
@@ -324,10 +330,22 @@ int univerga_compara_mierda(const void *pa, const void *pb) {
 	return res;
 }
 
-int matrix_chostos[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS] = { 0 };
-entero_largo matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS] = {
-		0 };
-natural matrix_fila_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS] = { 0 };
+int univerga_compara_ruta(const void *pa, const void *pb) {
+	int resul = 0, j;
+//	natural (*a)[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS] = ((*)[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS])pa;
+	natural (*a)[UNIVERGA_MAX_COLUMNAS] =
+			(natural (*)[UNIVERGA_MAX_COLUMNAS]) pa;
+	natural (*b)[UNIVERGA_MAX_COLUMNAS] =
+			(natural (*)[UNIVERGA_MAX_COLUMNAS]) pb;
+	for (j = 0; j < UNIVERGA_MAX_COLUMNAS; j++) {
+		if ((*a)[j] != (*b)[j]) {
+			resul = (*a)[j] - (*b)[j];
+			break;
+		}
+	}
+	assert_timeout(j<UNIVERGA_MAX_COLUMNAS);
+	return resul;
+}
 
 static void univerga_core(tipo_dato *matrix_chostos,
 /*		tipo_dato matrix_chostos[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS], */
@@ -339,7 +357,9 @@ entero_largo matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS],
 	int movimientos[] = { -1, 0, 1 };
 	entero_largo chosto_min = LONG_LONG_MAX;
 	natural chosto_min_idx = UNIVERGA_IDX_INVALIDO;
+	natural chosto_min_fila_cur = UNIVERGA_IDX_INVALIDO;
 	puto_cardinal rutas_ant[3] = { 0 };
+	natural ruta_pot_cont = 0;
 
 	for (i = 0; i < filas_tam; i++) {
 		matrix_chosto_rutas[i][0] = *(matrix_chostos + i * columnas_tam);
@@ -372,12 +392,10 @@ entero_largo matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS],
 			matrix_chosto_rutas[i][j] = rutas_ant->costo
 					+ *(matrix_chostos + i * columnas_tam + j);
 			matrix_fila_rutas[i][j] = rutas_ant->fila;
-			/*
-			 caca_log_debug("mierda costo %u %u es %d", i, j,
-			 matrix_chosto_rutas[i][j]);
-			 caca_log_debug("mierda fila %u %u es %u", i, j,
-			 matrix_fila_rutas[i][j]);
-			 */
+			caca_log_debug("mierda costo %u %u es %d", i, j,
+					matrix_chosto_rutas[i][j]);
+			caca_log_debug("mierda fila %u %u es %u", i, j,
+					matrix_fila_rutas[i][j]);
 
 		}
 	}
@@ -395,13 +413,26 @@ entero_largo matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS],
 	}
 	assert_timeout(chosto_min_idx != UNIVERGA_IDX_INVALIDO);
 	caca_log_debug("el chosto min es %d en %u", chosto_min, chosto_min_idx);
-	i = columnas_tam - 1;
-	while (chosto_min_idx != UNIVERGA_IDX_INVALIDO) {
-		ruta[i] = chosto_min_idx + 1;
-		chosto_min_idx = matrix_fila_rutas[chosto_min_idx][i];
-		i--;
+
+	for (i = 0; i < filas_tam; i++) {
+		j = columnas_tam - 1;
+		if (matrix_chosto_rutas[i][j] == chosto_min) {
+			chosto_min_fila_cur = i;
+			while (chosto_min_fila_cur != UNIVERGA_IDX_INVALIDO) {
+				rutas_pot[ruta_pot_cont][j] = chosto_min_fila_cur + 1;
+				chosto_min_fila_cur = matrix_fila_rutas[chosto_min_fila_cur][j];
+				j--;
+			}
+			assert_timeout(j == -1);
+			caca_log_debug("la puta ruta act %u de fila %u es %s",
+					ruta_pot_cont, i,
+					caca_comun_arreglo_a_cadena_natural(rutas_pot[ruta_pot_cont], columnas_tam, CACA_COMUN_BUF_STATICO));
+			ruta_pot_cont++;
+		}
 	}
-	assert_timeout(i == -1);
+	qsort(rutas_pot, ruta_pot_cont, sizeof(rutas_pot[0]),
+			univerga_compara_ruta);
+	memcpy(ruta, rutas_pot[0], columnas_tam * sizeof(natural));
 	caca_log_debug("la mierda es %s",
 			caca_comun_arreglo_a_cadena_natural(ruta, columnas_tam, CACA_COMUN_BUF_STATICO));
 	*chosto = chosto_min;
