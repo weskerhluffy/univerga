@@ -371,8 +371,8 @@ entero_largo matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS],
 	for (i = 0; i < filas_tam; i++) {
 		matrix_chosto_rutas[i][0] = *(matrix_chostos + i * columnas_tam);
 		matrix_fila_rutas[i][0] = UNIVERGA_IDX_INVALIDO;
-		caca_log_debug("puta mierda %d casteado %d", *(matrix_chostos),
-				*(matrix_chostos +i*columnas_tam));
+		caca_log_debug("puta mierda %d casteado %d",
+				*(matrix_chostos +i*columnas_tam), matrix_chosto_rutas[i][0]);
 		rutas_parciales[i][0][0] = i;
 	}
 
@@ -380,7 +380,7 @@ entero_largo matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS],
 			caca_comun_matrix_a_cadena((tipo_dato *)matrix_chosto_rutas, filas_tam, columnas_tam, CACA_COMUN_BUF_STATICO));
 	for (j = 1; j < columnas_tam; j++) {
 		for (i = 0; i < filas_tam; i++) {
-			for (k = 0; k < 3; k++) {
+			for (k = 0; k < 3 && k < filas_tam; k++) {
 				int mov_act = movimientos[k];
 				int pos_col_ant = i + mov_act;
 				if (pos_col_ant == -1) {
@@ -401,7 +401,7 @@ entero_largo matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS],
 						final_ruta_act->costo,
 						caca_comun_arreglo_a_cadena_natural(final_ruta_act->extra, j, CACA_COMUN_BUF_STATICO));
 			}
-			qsort(rutas_ant, 3, sizeof(puto_cardinal), univerga_compara_mierda);
+			qsort(rutas_ant, k, sizeof(puto_cardinal), univerga_compara_mierda);
 			matrix_chosto_rutas[i][j] = rutas_ant->costo
 					+ *(matrix_chostos + i * columnas_tam + j);
 			matrix_fila_rutas[i][j] = rutas_ant->fila;
