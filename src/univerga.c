@@ -31,6 +31,10 @@
 #include <stdarg.h>
 #endif
 
+#ifndef LONG_LONG_MAX
+#define LONG_LONG_MAX LONG_MAX
+#endif
+
 #define CACA_COMUN_TAM_MAX_LINEA (16*200000)
 #define CACA_LOG_MAX_TAM_CADENA 2000
 
@@ -180,7 +184,7 @@ static char *caca_comun_arreglo_a_cadena(tipo_dato *arreglo, int tam_arreglo,
 
 	for (i = 0; i < tam_arreglo; i++) {
 		characteres_escritos += sprintf(ap_buffer + characteres_escritos,
-				"%d", *(arreglo + i));
+				"%12d", *(arreglo + i));
 		if (i < tam_arreglo - 1) {
 			*(ap_buffer + characteres_escritos++) = ',';
 		}
@@ -294,8 +298,8 @@ static int caca_comun_lee_matrix_long_stdin(tipo_dato *matrix, int *num_filas,
 typedef struct puto_cardinal {
 	union {
 		struct {
-			int coordenada_y_puto_cardinal;
-			int coordenada_x_puto_cardinal;
+			entero_largo coordenada_y_puto_cardinal;
+			entero_largo coordenada_x_puto_cardinal;
 		} separados_puto_cardinal;
 		entero_largo coordenadas_juntas_puto_cardinal;
 	} datos_puto_cardinal;
@@ -323,7 +327,7 @@ int univerga_compara_ruta(natural *a, natural *b) {
 	int resul = 0, j;
 	for (j = 0; j < UNIVERGA_MAX_COLUMNAS; j++) {
 		if ((a)[j] != (b)[j]) {
-			resul = (a)[j] - (b)[j];
+			resul = (int) a[j] - (int) b[j];
 			break;
 		}
 	}
@@ -338,7 +342,15 @@ int univerga_compara_mierda(const void *pa, const void *pb) {
 	if (a->costo == b->costo) {
 		res = univerga_compara_ruta(a->extra, b->extra);
 	} else {
-		res = a->costo - b->costo;
+		if (a->costo < b->costo) {
+			res = -1;
+		} else {
+			if (a->costo > b->costo) {
+				res = 1;
+			} else {
+				res = 0;
+			}
+		}
 	}
 
 	return res;
@@ -355,8 +367,7 @@ int univerga_compara_ruta_cb(const void *pa, const void *pb) {
 }
 
 static void univerga_core(tipo_dato *matrix_chostos,
-/*		tipo_dato matrix_chostos[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS], */
-entero_largo matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS],
+		entero_largo matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS],
 		natural matrix_fila_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS],
 		natural filas_tam, natural columnas_tam,
 		natural ruta[UNIVERGA_MAX_COLUMNAS], entero_largo *chosto) {
@@ -405,8 +416,9 @@ entero_largo matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS],
 			matrix_chosto_rutas[i][j] = rutas_ant->costo
 					+ *(matrix_chostos + i * columnas_tam + j);
 			matrix_fila_rutas[i][j] = rutas_ant->fila;
-			caca_log_debug("mierda costo %u %u es %d", i, j,
-					matrix_chosto_rutas[i][j]);
+			caca_log_debug("mierda costo %u %u es %ld, suma de %ld y %d", i, j,
+					matrix_chosto_rutas[i][j], rutas_ant->costo,
+					*(matrix_chostos + i * columnas_tam + j));
 			caca_log_debug("mierda fila %u %u es %u", i, j,
 					matrix_fila_rutas[i][j]);
 			caca_log_debug("mierda ruta anteior %s",
