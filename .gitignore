@@ -7,3 +7,10 @@ src/univerga
 *.plist
 
 src/univerga.dSYM/Contents/Resources/DWARF/univerga
+
+src/shame
+src/*.shame.log
+
+src/shame.dSYM/Contents/Resources/DWARF/shame
+
+*.swp

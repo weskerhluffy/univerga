@@ -46,7 +46,7 @@
 #define CACA_COMUN_ASSERT_SUAVECITO 1
 #define CACA_COMUN_ASSERT_NIMADRES 2
 
-#define UNIVERGA_VALOR_INVALIDO -1LL
+#define UNIVERGA_VALOR_INVALIDO (tipo_dato)INT_MAX
 #define UNIVERGA_IDX_INVALIDO ((natural)UNIVERGA_VALOR_INVALIDO)
 
 typedef unsigned int natural;
@@ -298,8 +298,8 @@ static int caca_comun_lee_matrix_long_stdin(tipo_dato *matrix, int *num_filas,
 typedef struct puto_cardinal {
 	union {
 		struct {
-			entero_largo coordenada_y_puto_cardinal;
-			entero_largo coordenada_x_puto_cardinal;
+			int coordenada_y_puto_cardinal;
+			int coordenada_x_puto_cardinal;
 		} separados_puto_cardinal;
 		entero_largo coordenadas_juntas_puto_cardinal;
 	} datos_puto_cardinal;
@@ -316,8 +316,7 @@ typedef struct puto_cardinal {
 #define fila coord_y
 
 int matrix_chostos[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS] = { 0 };
-entero_largo matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS] = {
-		0 };
+tipo_dato matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS] = { 0 };
 natural matrix_fila_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS] = { 0 };
 natural rutas_pot[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS] = { 0 };
 natural rutas_parciales[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS][UNIVERGA_MAX_COLUMNAS] =
@@ -376,13 +375,13 @@ int univerga_compara_ruta_cb(const void *pa, const void *pb) {
 }
 
 static void univerga_core(tipo_dato *matrix_chostos,
-		entero_largo matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS],
+		tipo_dato matrix_chosto_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS],
 		natural matrix_fila_rutas[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS],
 		natural filas_tam, natural columnas_tam,
-		natural ruta[UNIVERGA_MAX_COLUMNAS], entero_largo *chosto) {
+		natural ruta[UNIVERGA_MAX_COLUMNAS], tipo_dato *chosto) {
 	int i, j, k;
 	int movimientos[] = { -1, 0, 1 };
-	entero_largo chosto_min = LONG_LONG_MAX;
+	tipo_dato chosto_min = UNIVERGA_VALOR_INVALIDO;
 	natural chosto_min_idx = UNIVERGA_IDX_INVALIDO;
 	natural chosto_min_fila_cur = UNIVERGA_IDX_INVALIDO;
 	puto_cardinal rutas_ant[3] = { 0 };
@@ -489,7 +488,7 @@ static void univerga_main() {
 	natural filas_tam = 0;
 	natural columnas_tam = 0;
 	natural ruta[UNIVERGA_MAX_COLUMNAS] = { UNIVERGA_IDX_INVALIDO };
-	entero_largo chosto = 0;
+	tipo_dato chosto = 0;
 	int i, j;
 
 	/*	while (scanf("%d %d\n", &filas_tam, &columnas_tam) > 0) {*/
@@ -506,7 +505,7 @@ static void univerga_main() {
 			printf("%d ", ruta[i] + 1);
 		}
 		printf("%d\n", ruta[i] + 1);
-		printf("%lld\n", chosto);
+		printf("%d\n", chosto);
 	}
 }
 
