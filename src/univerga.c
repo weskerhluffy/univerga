@@ -323,15 +323,24 @@ natural rutas_pot[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS] = { 0 };
 natural rutas_parciales[UNIVERGA_MAX_FILAS][UNIVERGA_MAX_COLUMNAS][UNIVERGA_MAX_COLUMNAS] =
 		{ 0 };
 
+natural puta_mierda = 0;
+
 int univerga_compara_ruta(natural *a, natural *b) {
 	int resul = 0, j;
-	for (j = 0; j < UNIVERGA_MAX_COLUMNAS; j++) {
+	/*
+	 for (j = 0; j < UNIVERGA_MAX_COLUMNAS; j++) {
+	 */
+	for (j = 0; j < puta_mierda; j++) {
 		if ((a)[j] != (b)[j]) {
 			resul = (int) a[j] - (int) b[j];
 			break;
 		}
 	}
-	assert_timeout(j<UNIVERGA_MAX_COLUMNAS);
+	/*
+	 assert_timeout(j < UNIVERGA_MAX_COLUMNAS);
+	 */
+	assert_timeout(j <= puta_mierda);
+
 	return resul;
 }
 int univerga_compara_mierda(const void *pa, const void *pb) {
@@ -378,6 +387,7 @@ static void univerga_core(tipo_dato *matrix_chostos,
 	natural chosto_min_fila_cur = UNIVERGA_IDX_INVALIDO;
 	puto_cardinal rutas_ant[3] = { 0 };
 	natural ruta_pot_cont = 0;
+	puta_mierda = columnas_tam;
 
 	for (i = 0; i < filas_tam; i++) {
 		matrix_chosto_rutas[i][0] = *(matrix_chostos + i * columnas_tam);
@@ -450,15 +460,20 @@ static void univerga_core(tipo_dato *matrix_chostos,
 		j = columnas_tam - 1;
 		if (matrix_chosto_rutas[i][j] == chosto_min) {
 			chosto_min_fila_cur = i;
+			natural *mierda = rutas_parciales[i][j];
 			while (chosto_min_fila_cur != UNIVERGA_IDX_INVALIDO) {
-				rutas_pot[ruta_pot_cont][j] = chosto_min_fila_cur + 1;
+				rutas_pot[ruta_pot_cont][j] = chosto_min_fila_cur;
 				chosto_min_fila_cur = matrix_fila_rutas[chosto_min_fila_cur][j];
 				j--;
 			}
 			assert_timeout(j == -1);
-			caca_log_debug("la puta ruta act %u de fila %u es %s",
+			caca_log_debug(
+					"la puta ruta act %u de fila %u es %s, la ruta almac es %s",
 					ruta_pot_cont, i,
-					caca_comun_arreglo_a_cadena_natural(rutas_pot[ruta_pot_cont], columnas_tam, CACA_COMUN_BUF_STATICO));
+					caca_comun_arreglo_a_cadena_natural(rutas_pot[ruta_pot_cont], columnas_tam, CACA_COMUN_BUF_STATICO),
+					caca_comun_arreglo_a_cadena_natural(mierda,columnas_tam, CACA_COMUN_BUF_STATICO));
+			assert_timeout(
+					!univerga_compara_ruta(mierda, rutas_pot[ruta_pot_cont]));
 			ruta_pot_cont++;
 		}
 	}
@@ -477,7 +492,8 @@ static void univerga_main() {
 	entero_largo chosto = 0;
 	int i, j;
 
-	while (scanf("%d %d\n", &filas_tam, &columnas_tam) > 0) {
+	/*	while (scanf("%d %d\n", &filas_tam, &columnas_tam) > 0) {*/
+	while (scanf("%d %d\n", &filas_tam, &columnas_tam) != EOF) {
 		caca_log_debug("d la mierda %u %u", filas_tam, columnas_tam);
 		caca_comun_lee_matrix_long_stdin((tipo_dato *) matrix_chostos, &(int ) {
 						0 },
@@ -487,9 +503,9 @@ static void univerga_main() {
 		univerga_core((tipo_dato *) matrix_chostos, matrix_chosto_rutas,
 				matrix_fila_rutas, filas_tam, columnas_tam, ruta, &chosto);
 		for (i = 0; i < columnas_tam - 1; i++) {
-			printf("%d ", ruta[i]);
+			printf("%d ", ruta[i] + 1);
 		}
-		printf("%d\n", ruta[i]);
+		printf("%d\n", ruta[i] + 1);
 		printf("%lld\n", chosto);
 	}
 }
