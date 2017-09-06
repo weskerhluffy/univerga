@@ -6,6 +6,7 @@
  Copyright   : a veces siento que
  Description : Hello World in C, Ansi-style
  ============================================================================
+ XXX: https://tausiq.wordpress.com/2010/10/17/uva-116-unidirectional-tsp-soln/
  */
 #define _GNU_SOURCE
 #include <stdio.h>
@@ -492,11 +493,18 @@ static void univerga_main() {
 	int i, j;
 
 	/*	while (scanf("%d %d\n", &filas_tam, &columnas_tam) > 0) {*/
-	while (scanf("%d %d\n", &filas_tam, &columnas_tam) != EOF) {
+	while (scanf("%d %d", &filas_tam, &columnas_tam) != EOF) {
 		caca_log_debug("d la mierda %u %u", filas_tam, columnas_tam);
-		caca_comun_lee_matrix_long_stdin((tipo_dato *) matrix_chostos, &(int ) {
-						0 },
-				NULL, filas_tam, columnas_tam);
+		/*
+		 caca_comun_lee_matrix_long_stdin((tipo_dato *) matrix_chostos, &(int ) {
+		 0 },
+		 NULL, filas_tam, columnas_tam);
+		 */
+		for (i = 0; i < filas_tam; i++) {
+			for (j = 0; j < columnas_tam; j++) {
+				scanf("%d", ((int *) matrix_chostos + i * columnas_tam + j));
+			}
+		}
 		caca_log_debug("matrix chostos\n%s",
 				caca_comun_matrix_a_cadena((tipo_dato *)matrix_chostos, filas_tam, columnas_tam, CACA_COMUN_BUF_STATICO));
 		univerga_core((tipo_dato *) matrix_chostos, matrix_chosto_rutas,
